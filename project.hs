@@ -62,8 +62,15 @@ sumMon a = map (\x -> (fst x, [sum (snd x)])) a
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
+-- 1.
 normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 normal a = removeMon (sumMon (joinPoly a))
+
+-- 2.
+sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+sumPoly a b = normal (a ++ b)
+
+
 
 
 
