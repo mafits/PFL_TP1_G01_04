@@ -1,6 +1,8 @@
 import Data.List
 import Data.Ord
 import Data.Char
+import Data.Function
+import Data.Monoid (mappend)
 
 -- show This gets rid of all the zeroes at the end of the representation.
 toProper [] = []
@@ -30,6 +32,7 @@ normal a = filter (\x -> (snd x !! 0) 0) (map (\x -> (fst x, [sum (snd x)])) a) 
 -- concatenar
 -- somar
 -- tirar os zeros
+
 
 
 -- testa se uma variável + expoente está presente numa lista de variáveis + expoentes
@@ -68,13 +71,22 @@ sumMon a = map (\x -> (fst x, [sum (snd x)])) a
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
+myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2
+
+mySort :: Ord a => Ord b => [(a, b)] -> [(a, b)]
+mySort = sortBy (myPredicate) 
 -- 1.
-normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-normal a = removeMon (sumMon (joinPoly a))
+normal :: [([(String, Int)], [Int])] -> String
+normal a = stringify (removeMon (sumMon (joinPoly a)))
 
 -- 2.
-sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+-- sum two polynomials
+sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
 sumPoly a b = normal (a ++ b)
+
+-- sum multiple polynomials in a list
+sumPolyList :: [[([(String, Int)], [Int])]] -> String
+sumPolyList a = normal (foldl (++) [] a)
 
 -- 3.
 -- multiplicar 2 mon
@@ -104,9 +116,28 @@ mulMonPoly x (y:ys) = [addEqualVar(mulMon x y)] ++ mulMonPoly x ys
 -- multiplicação
 mulPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 mulPoly [] y = []
-mulPoly (x:xs) y = normal(mulMonPoly x y ++ mulPoly xs y)
+mulPoly (x:xs) y = mulMonPoly x y ++ mulPoly xs y
 
+-- print multiplicação
+mult :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
+mult a b =  normal (mulPoly a b)
 
+-- passar variaveis de monomio para string (x^2)
+stringifyVar :: [(String, Int)] -> String
+stringifyVar a = foldl (++) "" (map (\x -> if ((snd x) /= 1) then (fst x ++ "^" ++ (show (snd x))) else (fst x)) (mySort a))
+
+-- passar monómio para string
+stringifyMon :: ([(String, Int)], [Int]) -> String 
+stringifyMon ([], a) = show (a !! 0)
+stringifyMon a = show (abs ((snd a) !! 0)) ++ "*" ++ stringifyVar (fst a)
+
+-- passar polinómio para string
+stringifyPol :: [([(String, Int)], [Int])] -> String
+stringifyPol a = foldl (++) "" (map (\x -> if (((snd x) !! 0) > 0 ) then (" + " ++ (stringifyMon x)) else (" - " ++ (stringifyMon x))) a)
+
+-- adicionar as operações entre os monómios
+stringify :: [([(String, Int)], [Int])] -> String
+stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol xs) else "- " ++ (stringifyMon x) ++ (stringifyPol xs)
 
 -- normal [([("x",2),("y",3)],[2]), ([("y",3)],[3]),([("y",3),("x",2)],[5]), ([("y",2)],[5]), ([("z",2)],[])]
 
