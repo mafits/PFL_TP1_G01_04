@@ -4,27 +4,6 @@ import Data.Char
 import Data.Function
 import Data.Monoid (mappend)
 
--- show This gets rid of all the zeroes at the end of the representation.
-toProper [] = []
-toProper p = if (last p /= 0) -- this means there is nothing to do.
-             then p 
-             else toProper $ init p 
-
-toStringFinal :: [String]-> String
-toStringFinal (x:xs) = x ++ " + " ++ toStringFinal xs
-toStringFinal [] = ""
-
-toString :: [Int] -> [String]
-toString a = map show a
-
--- alterar to map
-toInt :: [String] -> [Int]
-toInt l =  map (\x -> read x::Int) l
-
-append :: Int -> [Int] -> [Int]
-append a [] = [a]
-append a (x:xs) = x : append a xs
-
 {-}
 normal :: [(String,[Int])] -> [(String,[Int])]
 normal a = filter (\x -> (snd x !! 0) 0) (map (\x -> (fst x, [sum (snd x)])) a) -}
