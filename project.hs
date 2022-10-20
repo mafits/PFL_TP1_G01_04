@@ -50,6 +50,9 @@ sumMon a = map (\x -> (fst x, [sum (snd x)])) a
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
+removeNullExp :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
+removeNullExp a = addEqualVar(removeNull(fst a), snd a)
+
 myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2
 
 mySort :: Ord a => Ord b => [(a, b)] -> [(a, b)]
