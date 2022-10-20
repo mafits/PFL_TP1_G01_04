@@ -84,6 +84,7 @@ equalVar :: [(String, Int)] -> [(String, Int)]
 equalVar [] = []
 equalVar (x:xs) = addExp x xs : equalVar(mydel (addExp x xs) xs)
 
+-- substituir por map (apagar esta função)
 addEqualVar :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 addEqualVar a = (equalVar (fst a), snd a)
 
@@ -118,6 +119,36 @@ stringifyPol a = foldl (++) "" (map (\x -> if (((snd x) !! 0) > 0 ) then (" + " 
 stringify :: [([(String, Int)], [Int])] -> String
 stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol xs) else "- " ++ (stringifyMon x) ++ (stringifyPol xs)
 
--- normal [([("x",2),("y",3)],[2]), ([("y",3)],[3]),([("y",3),("x",2)],[5]), ([("y",2)],[5]), ([("z",2)],[])]
+-- 4. derivação
+-- mon não tem String -> 0
+-- mon tem String e mais nada -> exp -1; coef * exp
+-- mon tem String e mais -> derivar String * resto 
 
+stringIn :: [(String, Int)] -> String -> Bool
+stringIn [] b = False
+stringIn (x:xs) b = if fst x == b then True else stringIn xs b
 
+-- derivação com string
+derive :: [(String, Int)] -> [Int] -> ([(String, Int)], [Int])
+derive a [b] = ([(fst(a!!0), snd(a!!0)-1)], [b*snd(a!!0)])
+
+filterVar :: [(String, Int)] -> String -> [(String, Int)]
+filterVar [] b = []
+filterVar (x:xs) b = if fst x == b then [x] else filterVar xs b
+
+notFilterVar :: [(String, Int)] -> String -> [(String, Int)]
+notFilterVar [] b = []
+notFilterVar (x:xs) b = if fst x /= b then x : notFilterVar xs b else notFilterVar xs b
+
+concatVar :: ([(String, Int)], [Int]) -> [(String, Int)] -> ([(String, Int)], [Int])
+concatVar a b = (fst a ++ b, snd a)
+
+-- tem var = String, fazer derivação da multiplicação
+deriveMul :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
+deriveMul a b = concatVar(derive (filterVar (fst a) b) (snd a)) (notFilterVar (fst a) b)
+
+deriveMon :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
+deriveMon a b = if stringIn (fst a) b then deriveMul a b else ([],[0])
+
+derivePol :: [([(String, Int)], [Int])] -> String -> [([(String, Int)], [Int])]
+derivePol a b = normal (map (\x -> deriveMon x b) a)
