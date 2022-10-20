@@ -12,7 +12,7 @@ normal a = filter (\x -> (snd x !! 0) 0) (map (\x -> (fst x, [sum (snd x)])) a) 
 -- somar
 -- tirar os zeros
 
-
+--[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
 
 -- testa se uma variável + expoente está presente numa lista de variáveis + expoentes
 exists:: (String, Int) -> [(String, Int)] -> Bool
@@ -50,22 +50,36 @@ sumMon a = map (\x -> (fst x, [sum (snd x)])) a
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
+removeNull :: [(String, Int)] -> [(String, Int)]
+removeNull [] = []
+removeNull (x:xs) = if snd x == 0 then removeNull xs else x : removeNull xs
+
+-- apagar e substituir por map
+removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+removeVar xs = map removeNullExp xs
+
+removeNullExp :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
+removeNullExp a = addEqualVar(removeNull(fst a), snd a)
+
 myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2
 
 mySort :: Ord a => Ord b => [(a, b)] -> [(a, b)]
 mySort = sortBy (myPredicate) 
+
+--sortPol :: Ord a => Ord b => (a,b) -> [a,b]
+--sortPol = sortBy (compare findMax a) 
 -- 1.
-normal :: [([(String, Int)], [Int])] -> String
-normal a = stringify (removeMon (sumMon (joinPoly a)))
+normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+normal a = removeVar (removeMon (sumMon (joinPoly a)))
 
 -- 2.
 -- sum two polynomials
 sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
-sumPoly a b = normal (a ++ b)
+sumPoly a b = stringify (normal (a ++ b))
 
 -- sum multiple polynomials in a list
 sumPolyList :: [[([(String, Int)], [Int])]] -> String
-sumPolyList a = normal (foldl (++) [] a)
+sumPolyList a = stringify (normal (foldl (++) [] a))
 
 -- 3.
 -- multiplicar 2 mon
@@ -100,7 +114,7 @@ mulPoly (x:xs) y = mulMonPoly x y ++ mulPoly xs y
 
 -- print multiplicação
 mult :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
-mult a b =  normal (mulPoly a b)
+mult a b =  stringify (normal (mulPoly a b))
 
 -- passar variaveis de monomio para string (x^2)
 stringifyVar :: [(String, Int)] -> String
@@ -150,5 +164,7 @@ deriveMul a b = concatVar(derive (filterVar (fst a) b) (snd a)) (notFilterVar (f
 deriveMon :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
 deriveMon a b = if stringIn (fst a) b then deriveMul a b else ([],[0])
 
-derivePol :: [([(String, Int)], [Int])] -> String -> [([(String, Int)], [Int])]
-derivePol a b = normal (map (\x -> deriveMon x b) a)
+derivePol :: [([(String, Int)], [Int])] -> String -> String
+derivePol a b = stringify (normal (map (\x -> deriveMon x b) (normal a)))
+
+ 
