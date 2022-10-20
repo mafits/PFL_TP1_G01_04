@@ -58,6 +58,7 @@ removeNull (x:xs) = if snd x == 0 then removeNull xs else x : removeNull xs
 removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeVar xs = map removeNullExp xs
 
+
 removeNullExp :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 removeNullExp a = addEqualVar(removeNull(fst a), snd a)
 
