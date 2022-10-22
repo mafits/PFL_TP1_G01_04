@@ -4,16 +4,6 @@ import Data.Char
 import Data.Function
 import Data.Monoid (mappend)
 
-{-}
-normal :: [(String,[Int])] -> [(String,[Int])]
-normal a = filter (\x -> (snd x !! 0) 0) (map (\x -> (fst x, [sum (snd x)])) a) -}
-
--- concatenar
--- somar
--- tirar os zeros
-
---[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
-
 -- testa se uma variável + expoente está presente numa lista de variáveis + expoentes
 exists:: (String, Int) -> [(String, Int)] -> Bool
 exists a [] = False
@@ -26,14 +16,11 @@ isEqual [] b = True
 isEqual (a:xs) b | exists a b = isEqual xs b
                  | otherwise = False
 
-delete :: Eq a => a -> [a] -> [a]
-delete deleted xs = [ x | x <- xs, x /= deleted ]
-
--- concatena os coeficientes de 2 mon com var + exp iguais
+-- soma dois monómios (com variáveis e expoentes iguais)
 joinMon :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 joinMon x y = ( fst y, (snd y) ++ (snd x) )
 
--- concatena os coeficientes de todos os mon com var + exp iguais
+-- soma vários monómios (com variáveis e expoentes iguais)
 joinMonList :: [([(String, Int)], [Int])]  -> [([(String, Int)], [Int])]
 joinMonList (x:xs) = [foldl (\z y -> joinMon z y) x xs]
 
@@ -64,14 +51,24 @@ removeNullExp a = addEqualVar(removeNull(fst a), snd a)
 
 myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2
 
-mySort :: Ord a => Ord b => [(a, b)] -> [(a, b)]
-mySort = sortBy (myPredicate) 
+sortMon :: Ord a => Ord b => [(a, b)] -> [(a, b)]
+sortMon = sortBy (myPredicate) 
 
---sortPol :: Ord a => Ord b => (a,b) -> [a,b]
---sortPol = sortBy (compare findMax a) 
+findMax:: [([Char] ,Int)]-> Int
+findMax [] = 0
+findMax [a] = snd a
+findMax (x:xs) = if( (snd x)>= (snd (head xs))) then findMax ([x]++(tail xs))
+            else findMax xs
+
+sortPol z = reverse(sortOn (\(x,y)->(findMax  x)) z) 
+
 -- 1.
+-- Normalize a polynomial
 normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-normal a = removeVar (removeMon (sumMon (joinPoly a)))
+normal a = sortPol (removeVar (removeMon (sumMon (joinPoly a))))
+
+stringifyNormal ::  [([(String, Int)], [Int])]  -> String
+stringifyNormal y = stringify  ( map (\x -> (sortMon (fst x), snd x)) (normal y))
 
 -- 2.
 -- sum two polynomials
@@ -119,7 +116,7 @@ mult a b =  stringify (normal (mulPoly a b))
 
 -- passar variaveis de monomio para string (x^2)
 stringifyVar :: [(String, Int)] -> String
-stringifyVar a = foldl (++) "" (map (\x -> if ((snd x) /= 1) then (fst x ++ "^" ++ (show (snd x))) else (fst x)) (mySort a))
+stringifyVar a = foldl (++) "" (map (\x -> if ((snd x) /= 1) then (fst x ++ "^" ++ (show (snd x))) else (fst x)) (sortMon a))
 
 -- passar monómio para string
 stringifyMon :: ([(String, Int)], [Int]) -> String 
@@ -168,4 +165,13 @@ deriveMon a b = if stringIn (fst a) b then deriveMul a b else ([],[0])
 derivePol :: [([(String, Int)], [Int])] -> String -> String
 derivePol a b = stringify (normal (map (\x -> deriveMon x b) (normal a)))
 
- 
+
+--[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
+
+--([("x",1),("y",3)],[3,5])
+
+--[("x",1),("y",3)]
+
+-- [([("x",9),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
+
+--[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
