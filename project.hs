@@ -4,6 +4,38 @@ import Data.Char
 import Data.Function
 import Data.Monoid (mappend)
 
+removeSpace :: String -> String
+removeSpace = filter (not . isSpace)
+
+hasLetter :: String -> Bool
+hasLetter [] = False
+hasLetter (x:xs) = if isLetter x then True else hasLetter xs
+
+parseVar :: String -> (String, Int)
+parseVar a | length a == 1 = (a, 1)
+           | otherwise = (takeWhile (/= '^') a, read (dropWhile (not. (isDigit)) a) :: Int)
+
+parseCoef :: String -> Int
+parseCoef a = read a :: Int
+
+divideInPar :: String -> [String]
+divideInPar [] = []
+divideInPar ('*':xs) = divideInPar(xs)
+divideInPar a = (takeWhile (/= '*') a) : divideInPar (dropWhile (/= '*') a)
+
+parseMon :: String -> ([(String, Int)], [Int])
+parseMon a | length (map parseCoef (filter (not . hasLetter) (divideInPar a))) == 0 = (map parseVar (filter hasLetter (divideInPar a)), [1])
+           | otherwise = (map parseVar (filter hasLetter (divideInPar a)), map parseCoef (filter (not . hasLetter) (divideInPar a)))
+
+parsePoly :: String -> [([(String, Int)], [Int])]
+parsePoly [] = []
+parsePoly ('+':xs) = parsePoly(xs)
+parsePoly ('-':xs) = parsePoly(xs)
+parsePoly a = [parseMon (takeWhile (\x -> (x /= '+') && (x /= '-')) a)] ++ parsePoly (dropWhile (\x -> (x /= '+') && (x /= '-')) a)
+
+parse :: String -> [([(String, Int)], [Int])]
+parse a = parsePoly(removeSpace a)
+
 -- testa se uma variável + expoente está presente numa lista de variáveis + expoentes
 exists:: (String, Int) -> [(String, Int)] -> Bool
 exists a [] = False
@@ -97,9 +129,15 @@ stringifyNormal y = stringify  ( map (\x -> (sortMon (fst x), snd x)) (normal y)
 sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
 sumPoly a b = stringify (normal (a ++ b))
 
+sumString :: String -> String -> String
+sumString a b = sumPoly (parse a) (parse b)
+
 -- Soma vários polinómios numa lista e imprime na forma de string
 sumPolyList :: [[([(String, Int)], [Int])]] -> String
 sumPolyList a = stringify (normal (foldl (++) [] a))
+
+sumListString :: [String] -> String
+sumListString a = sumPolyList (map parse a)
 
 -- 3. MULTIPLICAÇÃO
 -- multiplicar 2 mon
@@ -133,10 +171,11 @@ mulPoly [] y = []
 mulPoly (x:xs) y = mulMonPoly x y ++ mulPoly xs y
 
 -- print multiplicação
-mult :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
-mult a b =  stringify (normal (mulPoly a b))
+mul :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
+mul a b =  stringify (normal (mulPoly a b))
 
-
+mulString :: String -> String -> String
+mulString a b = mul (parse a) (parse b)
 
 -- 4. derivação
 -- mon não tem String -> 0
@@ -148,8 +187,8 @@ stringIn [] b = False
 stringIn (x:xs) b = if fst x == b then True else stringIn xs b
 
 -- derivação com string
-derive :: [(String, Int)] -> [Int] -> ([(String, Int)], [Int])
-derive a [b] = ([(fst(a!!0), snd(a!!0)-1)], [b*snd(a!!0)])
+deriveVar :: [(String, Int)] -> [Int] -> ([(String, Int)], [Int])
+deriveVar a [b] = ([(fst(a!!0), snd(a!!0)-1)], [b*snd(a!!0)])
 
 filterVar :: [(String, Int)] -> String -> [(String, Int)]
 filterVar [] b = []
@@ -164,14 +203,16 @@ concatVar a b = (fst a ++ b, snd a)
 
 -- tem var = String, fazer derivação da multiplicação
 deriveMul :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
-deriveMul a b = concatVar(derive (filterVar (fst a) b) (snd a)) (notFilterVar (fst a) b)
+deriveMul a b = concatVar(deriveVar (filterVar (fst a) b) (snd a)) (notFilterVar (fst a) b)
 
 deriveMon :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
 deriveMon a b = if stringIn (fst a) b then deriveMul a b else ([],[0])
 
-derivePol :: [([(String, Int)], [Int])] -> String -> String
-derivePol a b = stringify (normal (map (\x -> deriveMon x b) (normal a)))
+derive :: [([(String, Int)], [Int])] -> String -> String
+derive a b = stringify (normal (map (\x -> deriveMon x b) (normal a)))
 
+deriveString :: String -> String -> String
+deriveString a b = derive (parse a) b
 
 --[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
 
