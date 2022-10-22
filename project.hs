@@ -27,13 +27,11 @@ joinMonList (x:xs) = [foldl (\z y -> joinMon z y) x xs]
 -- soma os monómios com variáveis e expoentes iguais dentro de um polinómio
 joinPoly :: [([(String, Int)], [Int])]  -> [([(String, Int)], [Int])]
 joinPoly [] = []
-joinPoly (x:xs) = (joinMonList ([x] ++ (filter (\y -> isEqual (fst x) (fst y)) xs))) ++ joinPoly (filter (\y -> not (isEqual (fst x) (fst y))) xs)
+joinPoly (x:xs) = (joinMonList ([(fst x, [sum (snd x)])] ++ (filter (\y -> isEqual (fst x) (fst y)) xs))) ++ joinPoly (filter (\y -> not (isEqual (fst x) (fst y))) xs)
 
 -- remove os monómios com coeficiente zero ( == 0 ) ou sem coeficiente ( == [] )
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
-
-
 
 removeNull :: [(String, Int)] -> [(String, Int)]
 removeNull [] = []
@@ -86,11 +84,11 @@ stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol 
 -- 1. NORMALIZAÇÃO
 -- Normaliza um polinómio
 normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-normal a = sortPol (removeVar (removeMon (joinPoly a)))
+normal a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
 
 -- Imprime o polinómio normalizado na forma de String
 stringifyNormal ::  [([(String, Int)], [Int])]  -> String
-stringifyNormal y = stringify  ( map (\x -> (sortMon (fst x), snd x)) (normal y))
+stringifyNormal y = stringify  (normal y)
 
 -- 2. SOMA
 -- Soma dois polinómios e imprime na forma de string
