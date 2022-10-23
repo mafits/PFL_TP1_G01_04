@@ -129,8 +129,6 @@ removeNullExp a = addEqualVar(removeNull(fst a), snd a)
 removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeVar xs = map removeNullExp xs
 
-
--- 1. NORMALIZAÇÃO
 -- Normaliza um polinómio
 normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 normal a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
