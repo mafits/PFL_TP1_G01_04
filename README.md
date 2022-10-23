@@ -43,31 +43,36 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Para removermos os casos em que o coefiente de um monómio é zero, ou a lista de coefiecientes está vazia, criamos também uma função -> *removeMon*
 
-> Para lidarmos com as incógnitas, criamos a função *handleVar*. Além de remover da lista das incógnitas aquelas que tivessem expoente 0 (*removeVar*), soma expoentes de incógnitas que, num mesmo monómio, têm igual variável (*addEqualVar*). Esta última, verifica se na listagem de incógnitas de um monómio existem duas com variáveis iguais. Para testar todos os pares, verifica a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, soma o expoente da segunda ao expoente da primeira, ficando a primeira incógnita com o expoente "atualizado". Finalmente é eliminada, então, a segunda incógnita da listagem.
+> Para lidarmos com as incógnitas, criamos a função *handleVar*. Além de remover da lista das incógnitas aquelas que tivessem expoente 0 (*removeVar*), também soma os expoentes de incógnitas com a mesma variável dentro do mesmo monómio(*addEqualVar*). Esta última, verifica se na listagem de incógnitas de um monómio existem duas com variáveis iguais. Para testar todos os pares, verifica a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, soma o expoente da segunda ao expoente da primeira, ficando apenas a primeira incógnita com o expoente "atualizado", sendo a segunda eliminada.
 
 > Para completar a normalização criámos duas funções de ordenação:
-- Para ordenar as incógnitas dentro de um monómio por ordem decrescente dos seus expoentes
+- Para ordenar as incógnitas dentro de um monómio por ordem decrescente dos seus expoentes; Quando estes são iguais ordenámos as incógnitas por ordem alfabética.
 - Para ordenar os monómios dentro de um polinómio por ordem decrescente do seu expoente máximo
 
-> Assim, a função final da normalização aplica as duas funções de ordenação e as duas funções imediatamente antes mencionadas.
+> Assim, a função final da normalização aplica as funções acima mencionadas.
 
-> Para imprimir na forma de String, chamámos uma função à parte -> `stringifyNormal` já que a função normal é utilizada com a representação interna noutras funções.
+> A função final da normalização é `normalString` que recebe e imprime na forma de String -> `normalString ::  String -> String`
+
 
 ### Soma
 
->Para a soma, já que na normalização soma-se monómios com parte literal igual dentro de um polinómio, a nossa estratégia consistiu em juntar  as duas listas numa só, trantando-a como um só polinómio, e aplicar a função `normal.` A função que faz a soma de dois polinómios é `sumPoly`
+>Para a soma, já que na normalização soma-se monómios com parte literal igual dentro de um polinómio, a nossa estratégia consistiu em juntar  as duas listas numa só, trantando-a como um só polinómio, e aplicar a função `normal.` A função que faz a soma de dois polinómios é `sumString`
 
->A nossa solução incluí também uma função que permite somar vários polinómios numa lista -> `sumPolyList`
+> A nossa solução incluí também uma função que permite somar vários polinómios numa lista -> `sumListString`
 
-> Ambas as funções retornam o resultado já na forma de *String*
+> Ambas as funções recebem o input e retornam o resultado já na forma de *String*
 
 ### Multiplicação
 
-> Distribuímos cada monómio do primeiro polinómio pelo segundo polinómio e, de seguida, fazemos a multiplicação entre dois monómios (um de cada polinómio).
+> O primeiro passo foi criar uma função que multiplicasse dois monómios, ou seja, que concatenasse as duas partes literais e multiplicasse os seus coeficientes -> `mulMon`
 
-> Entre dois monómios, inicialmente concatenamos as incógnitas de ambos e multiplicamos os coeficientes.
+> De seguida, aplicou-se a função anterior de forma distributiva. Para tal, criámos outra função que multiplicasse um monómio de um dos polinómios por todos os outros monómios do outro polinómio -> `mulMonPoly`
 
-> Após termos o polinómio final, procedemos à sua normalização, para juntar incógnitas dentro de um monómio com igual variável e somar os coeficientes monómios com iguais incógnitas.
+> Por último, aplicámos a função de cima a todos os monómios do primeiro polinómio, multiplicando assim todas as componentes de ambos os polinómios -> `mulPoly`
+
+> Após termos o polinómio final, procedemos à sua normalização, para juntar incógnitas dentro de um monómio com igual variável e somar os coeficientes monómios com iguais incógnitas -> `mul`
+
+> A função final (`mulString`) recebe e retorna o resutado na forma de String
 
 ### Derivação
 
@@ -79,7 +84,10 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Normalizamos o polinómio final para retirar coeficientes nulos, incógnitas com expoente nulo e juntar monómios com incógnitas iguais.
 
+<br>
+
 ## Exemplos de Teste
+
 <br>
 
 ### Normalização
@@ -124,6 +132,10 @@ sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 3*y^5 -x"
 sumString "- 2  *   x^  2 +  3*  y ^ 5  - 2 * x"  ""
 ```
 > Output: "3*y^5 - 2*x^2 - 2*x"
+``` haskell 
+sumListString ["- 2*x^2 + 3*y^5 -x", "- 2*x^2 + 3*y^5", "3*x"] 
+```
+> Output: "6*y^5 - 4*x^2 + 2*x""
 
 <br>
 
@@ -144,6 +156,8 @@ mulString "- 2  *  x  ^  2 + 3*  y  ^  5 -  3 * x  "   "x^0"
 mulString  "7*x^4+2*y" "0*x*y + 2"
 ```
 > Output: "14*x^4 + 4*y"
+
+<br>
 
 ### Derivação
 ``` haskell 

@@ -58,9 +58,9 @@ findMax [a] = snd a
 findMax (x:xs) = if( (snd x)>= (snd (head xs))) then findMax ([x]++(tail xs))
             else findMax xs
 
--- Ordena a lista de incognitas por ordem crescente do seu expoente
+-- Ordena a lista de incognitas por ordem crescente do seu expoente; Quando estes são iguais ordena por ordem alfabética
 sortMon :: Ord a => Ord b => [(a, b)] -> [(a, b)]
-sortMon = sortBy (compare `on` snd)
+sortMon = sortBy ((compare `on` snd) `mappend` (compare `on` fst))
 
 -- Ordena os monómios por ordem decrescente do seu maior expoente
 sortPol z = reverse(sortOn (\(x,y)->(findMax  x)) z) 
@@ -249,8 +249,3 @@ derive a b = stringify (derivePoly a b)
 -- Deriva um polinómio (String)
 deriveString :: String -> String -> String
 deriveString a b = derive (parse a) b
-
-
-
---myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2
---sortMon = sortBy (myPredicate) 
