@@ -28,7 +28,7 @@ parseCoef a = read a :: Int
 -- dividir um monómio numa lista de componentes (coeficiente e incógnitas)
 divideInComp :: String -> [String]
 divideInComp [] = []
-divideInComp ('*':xs) = divideComp(xs)
+divideInComp ('*':xs) = divideInComp(xs)
 divideInComp a | (head (takeWhile (/= '*') a) == '-') && isLetter (takeWhile (/= '*') a !! 1) = "-1" : tail (takeWhile (/= '*') a) : divideInComp (dropWhile (/= '*') a)
                | otherwise = takeWhile (/= '*') a : divideInComp (dropWhile (/= '*') a)
 
