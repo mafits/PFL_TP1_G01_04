@@ -43,7 +43,7 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Para removermos os casos em que o coefiente de um monómio é zero, ou a lista de coefiecientes está vazia, criamos também uma função -> *removeMon*
 
-> De igual modo, criámos também uma função para remover da lista das incógnitas aquelas que tivessem expoente 0 -> *removeVar*
+> Para lidarmos com as incógnitas, criamos a função *handleVar*. Além de remover da lista das incógnitas aquelas que tivessem expoente 0 (*removeVar*), soma expoentes de incógnitas que, num mesmo monómio, têm igual variável (*addEqualVar*). Esta última, verifica se na listagem de incógnitas de um monómio existem duas com variáveis iguais. Para testar todos os pares, verifica a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, soma o expoente da segunda ao expoente da primeira, ficando a primeira incógnita com o expoente "atualizado". Finalmente é eliminada, então, a segunda incógnita da listagem.
 
 > Para completar a normalização criámos duas funções de ordenação:
 - Para ordenar as incógnitas dentro de um monómio por ordem decrescente dos seus expoentes
@@ -67,11 +67,7 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Entre dois monómios, inicialmente concatenamos as incógnitas de ambos e multiplicamos os coeficientes.
 
-> Ao monómio que resulta disto, verificamos na listagem de incógnitas se existem duas com variáveis iguais.
-
-> Para testarmos todos os pares, verificamos a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, somamos o expoente da segunda ao expoente da primeira, ficando a primeira incógnita com o expoente "atualizado". Eliminamos, então, a segunda incógnita da listagem.
-
-> Após termos o polinómio final, procedemos à sua normalização.
+> Após termos o polinómio final, procedemos à sua normalização, para juntar incógnitas dentro de um monómio com igual variável e somar os coeficientes monómios com iguais incógnitas.
 
 ### Derivação
 
