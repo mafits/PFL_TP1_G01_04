@@ -150,7 +150,7 @@ normalPoly a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (handleVar (remove
 
 -- Normaliza um polinómio (input: representação interna, output: String)
 normal ::  [([(String, Int)], [Int])]  -> String
-normal y = stringify  (normalPoly y)
+normal y = if (stringify  (normalPoly y)) == "" then "0" else stringify  (normalPoly y)
 
 -- Normaliza um polinómio (String)
 normalString ::  String -> String
@@ -197,7 +197,7 @@ mulPoly (x:xs) y = mulMonPoly x y ++ mulPoly xs y
 
 -- Multiplica dois polinómios (input: representação interna, output: String)
 mul :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
-mul a b =  stringify (normalPoly (mulPoly a b))
+mul a b =  if (stringify (normalPoly (mulPoly a b))) == "" then "0" else (stringify (normalPoly (mulPoly a b)))
 
 -- Multiplica dois polinómios (String)
 mulString :: String -> String -> String
@@ -243,7 +243,7 @@ derivePoly a b = normalPoly (map (\x -> deriveMon x b) (normalPoly a))
 
 -- Deriva um polinómio (input: representação interna, output: String)
 derive :: [([(String, Int)], [Int])] -> String -> String
-derive a b = stringify (derivePoly a b)
+derive a b = if (stringify (derivePoly a b)) == "" then "0" else stringify (derivePoly a b)
 
 -- Deriva um polinómio (String)
 deriveString :: String -> String -> String
