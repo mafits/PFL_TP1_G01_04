@@ -230,11 +230,11 @@ notFilterVar (x:xs) b = if fst x /= b then x : notFilterVar xs b else notFilterV
 concatVar :: ([(String, Int)], [Int]) -> [(String, Int)] -> ([(String, Int)], [Int])
 concatVar a b = (fst a ++ b, snd a)
 
--- Testa se o monómio tem a variável a ser derivada e, no caso, deriva-a
+-- Deriva as incógnitas com variável igual à que pretendemos derivar e concatena com as incógnitas que não têm
 deriveMul :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
 deriveMul a b = concatVar(deriveVar (filterVar (fst a) b) (snd a)) (notFilterVar (fst a) b)
 
--- Deriva um monómio
+-- Deriva um monómio, testando se na listagem de incógnitas tem a variável que pretendemos derivar
 deriveMon :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
 deriveMon a b = if stringIn (fst a) b then deriveMul a b else ([],[0])
 
