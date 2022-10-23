@@ -61,4 +61,24 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Ambas as funções retornam o resultado já na forma de *String*
 
+### Multiplicação
 
+> Distribuímos cada monómio do primeiro polinómio pelo segundo polinómio e, de seguida, fazemos a multiplicação entre dois monómios (um de cada polinómio).
+
+> Entre dois monómios, inicialmente concatenamos as incógnitas de ambos e multiplicamos os coeficientes.
+
+> Ao monómio que resulta disto, verificamos na listagem de incógnitas se existem duas com variáveis iguais.
+
+> Para testarmos todos os pares, verificamos a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, somamos o expoente da segunda ao expoente da primeira, ficando a primeira incógnita com o expoente "atualizado". Eliminamos, então, a segunda incógnita da listagem.
+
+> Após termos o polinómio final, procedemos à sua normalização.
+
+### Derivação
+
+> Derivamos monómio e a monómio.
+
+> Testamos se um monómio tem a variável que pretendemos derivar e, no caso, procedemos à derivação. No caso contrário, devolvemos um monómio com coeficiente nulo.
+
+> Tendo um monómio a variável a derivar, derivamos as incógnitas que têm a variável, uma a uma (multiplicamos o coeficiente pelo expoente da incógnita e subtraímos o expoente por 1), e concatenamos com as que não têm.
+
+> Normalizamos o polinómio final para retirar coeficientes nulos, incógnitas com expoente nulo e juntar monómios com incógnitas iguais.
