@@ -111,6 +111,7 @@ stringifyPol a = foldl (++) "" (map (\x -> if (((snd x) !! 0) > 0 ) then (" + " 
 
 -- Verifica o valor do primeiro monómio e adiciona um "-" ou nada no início do polinómio
 stringify :: [([(String, Int)], [Int])] -> String
+stringify [] = ""
 stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol xs) else "- " ++ (stringifyMon x) ++ (stringifyPol xs)
 
 -- 1. NORMALIZAÇÃO
@@ -212,15 +213,21 @@ derive a b = stringify (normal (map (\x -> deriveMon x b) (normal a)))
 deriveString :: String -> String -> String
 deriveString a b = derive (parse a) b
 
---[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
+-- Normal
+--[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]  -> "9*x^7 + 15*xy^3"
+--[([("x",1)],[0]),([("z",7)],[9]),([("y",3),("x",1)],[])]  ->  "9*z^7"
+--[([("x",1)],[1]),([("x",1)],[-2]),([("x",1)],[])]  ->  "3*x"
+--[([("x",1)],[1]),([("x",1)],[-2]),([("x",1)],[])]  ->  "- 1*x"
+-- stringifyNormal [] -> ""
 
---([("x",1),("y",3)],[3,5])
 
---[("x",1),("y",3)]
+-- Soma
+-- sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 0*y^5 -3*x"
+-- sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 3*y^5 -x"
+-- sumString "- 2*x^2 + 3*y^5 -x"  ""
 
--- [([("x",9),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
+-- Multiplicação
 
---[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]
 
 
 --myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2
