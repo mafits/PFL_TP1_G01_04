@@ -4,7 +4,6 @@ import Data.Char
 import Data.Function
 import Data.Monoid (mappend)
 
-
 ----   PARSING: de string para polinómio
 
 -- Remove os espaços nas strings de input

@@ -84,6 +84,15 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Normalizamos o polinómio final para retirar coeficientes nulos, incógnitas com expoente nulo e juntar monómios com incógnitas iguais.
 
+### Imprimir na forma de String
+
+> Numa primeira fase criámos uma função que transformasse as incógnitas de um monómio e o seu respetivo expoente numa string -> `stringifyVar`
+
+> De seguida, utilizámos a função acima para criar outra que passasse para string um monómio completo -> `stringifyMon`
+
+> Aplicando a mesma lógica, criámos outra função que utilizasse a anterior em todos os monómios de um polinómio e acrescentasse os sinais de operações entre os mesmos ->  `stringifyPol`
+
+> Por fim, o passo final foi retirar o sinal '+' do primeiro monómio se este fosse positivo -> `stringify`
 <br>
 
 ## Exemplos de Teste
