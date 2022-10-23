@@ -250,23 +250,6 @@ derive a b = stringify (derivePoly a b)
 deriveString :: String -> String -> String
 deriveString a b = derive (parse a) b
 
--- Normal
--- normalString "3*x*y^3 + 5*x*y^3 - 9*x^7 - 7*y^3*x"  -> "9*x^7 + 15*xy^3"
--- normalString "9   *  z^9 + x*  y^3 - 0*x - 7*y^3*x"  ->  "9*z^9 - 6*xy^3"
--- normalString "" -> ""
-
--- Soma
--- sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 0*y^5 -3*x"
--- sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 3*y^5 -x"
--- sumString "- 2*x^2 + 3*y^5 -x"  ""
-
--- Multiplicação
-
--- mulString "- 2*x^2 + 3*y^5 -x"   "- 2*x^2 + 3*y^5" ->  "9*y^10 - 3*xy^5 - 12*x^2y^5 + 4*x^4 + 2*x^3"
--- mulString "- 2*x^2 + 3*y^5 -x"   "0"  -> ""
--- mulString "- 2  *  x  ^  2 + 3*  y  ^  5 -  x  "   "1" -> "3*y^5 - 2*x^2 - 1*x"
-
-
 
 
 --myPredicate (a1, a2) (b1, b2) = compare a1 b1 `mappend` compare a2 b2

@@ -78,3 +78,87 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 > Tendo um monómio a variável a derivar, derivamos as incógnitas que têm a variável, uma a uma (multiplicamos o coeficiente pelo expoente da incógnita e subtraímos o expoente por 1), e concatenamos com as que não têm.
 
 > Normalizamos o polinómio final para retirar coeficientes nulos, incógnitas com expoente nulo e juntar monómios com incógnitas iguais.
+
+## Exemplos de Teste
+<br>
+
+### Normalização
+
+``` haskell 
+normalString "3*x*y^3 + 5*x*y^3 - 9*x^7 - 7*y^3*x" 
+```
+> Output: "9*x^7 + 15*xy^3"
+``` haskell 
+normalString "9   *  z^9 + x*  y^3 - 0*x - 7*y^3*x"
+```
+> Output: "9*z^9 - 6*xy^3"
+``` haskell 
+normalString "" 
+```
+> Output: ""
+``` haskell 
+normalString "9*z^0 - 3*a^3 +2*x" 
+```
+> Output: "- 3*a^3 + 2*x + 9"
+``` haskell 
+normalString  "2*x^2*x*x"
+```
+> Output: "2*x^4"
+``` haskell 
+normalString  "2*x^0*y^1"
+```
+> Output: "2*y"
+
+<br>
+
+### Soma
+``` haskell 
+sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 0*y^5 -3*x"
+```
+> Output: "3*y^5 - 4*x^2 - 4*x"
+``` haskell 
+sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 3*y^5 -x"
+```
+> Output: "6*y^5 - 4*x^2 - 2*x"
+``` haskell 
+sumString "- 2  *   x^  2 +  3*  y ^ 5  - 2 * x"  ""
+```
+> Output: "3*y^5 - 2*x^2 - 2*x"
+
+<br>
+
+### Multiplicação
+``` haskell 
+mulString "- 2*x^2 + 3*y^5 -x"   "- 2*x^2 + 3*y^5"
+```
+> Output: "9*y^10 - 3*xy^5 - 12*x^2y^5 + 4*x^4 + 2*x^3"
+``` haskell 
+mulString "- 2*x^2 + 3*y^5 -x"   "0" 
+```
+> Output: ""
+``` haskell 
+mulString "- 2  *  x  ^  2 + 3*  y  ^  5 -  3 * x  "   "x^0"
+```
+> Output: "3*y^5 - 2*x^2 - 3*x"
+``` haskell 
+mulString  "7*x^4+2*y" "0*x*y + 2"
+```
+> Output: "14*x^4 + 4*y"
+
+### Derivação
+``` haskell 
+deriveString  "x^4 + 2*y*x^6 + 5*z^3"  "x"
+```
+> Output: "12*yx^5 + 4*x^3"
+``` haskell 
+deriveString "3*z + 1"  "x" 
+```
+> Output: ""
+``` haskell 
+deriveString   "x ^ 2 +3 * z -4 * z   ^2 "  "z"
+```
+> Output: "- 8*z + 3"
+``` haskell 
+deriveString   "x +0*x"  "x"
+```
+> Output: "1"
