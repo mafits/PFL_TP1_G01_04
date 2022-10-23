@@ -128,6 +128,14 @@ removeNullExp a = addEqualVar(removeNull(fst a), snd a)
 removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeVar xs = map removeNullExp xs
 
+-- Normaliza um polinómio
+normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+normal a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
+
+-- Imprime o polinómio normalizado na forma de String
+stringifyNormal ::  [([(String, Int)], [Int])]  -> String
+stringifyNormal y = stringify  (normal y)
+
 
 -- B) SOMA
 
