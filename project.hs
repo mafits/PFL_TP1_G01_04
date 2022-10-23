@@ -4,37 +4,89 @@ import Data.Char
 import Data.Function
 import Data.Monoid (mappend)
 
+
+----   PARSING: de string para polinómio
+
+-- remover os espaços das strings de input
 removeSpace :: String -> String
 removeSpace = filter (not . isSpace)
 
+-- retorna verdadeiro no caso de a componente do monómio ter uma variável (uma letra)
 hasLetter :: String -> Bool
 hasLetter [] = False
 hasLetter (x:xs) = if isLetter x then True else hasLetter xs
 
+-- transformar a incógnita na representação interna
 parseVar :: String -> (String, Int)
 parseVar a | length a == 1 = (a, 1)
-           | otherwise = (takeWhile (/= '^') a, read (dropWhile (not. (isDigit)) a) :: Int)
+           | otherwise = (takeWhile (/= '^') a, read (drop 2 a) :: Int)
 
+-- transformar o coeficiente na representação interna
 parseCoef :: String -> Int
 parseCoef a = read a :: Int
 
-divideInPar :: String -> [String]
-divideInPar [] = []
-divideInPar ('*':xs) = divideInPar(xs)
-divideInPar a = (takeWhile (/= '*') a) : divideInPar (dropWhile (/= '*') a)
+-- dividir um monómio numa lista de componentes (coeficiente e incógnitas)
+divideInComp :: String -> [String]
+divideInComp [] = []
+divideInComp ('*':xs) = divideComp(xs)
+divideInComp a | (head (takeWhile (/= '*') a) == '-') && isLetter (takeWhile (/= '*') a !! 1) = "-1" : tail (takeWhile (/= '*') a) : divideInComp (dropWhile (/= '*') a)
+               | otherwise = takeWhile (/= '*') a : divideInComp (dropWhile (/= '*') a)
 
+-- parse de cada monómio
 parseMon :: String -> ([(String, Int)], [Int])
-parseMon a | length (map parseCoef (filter (not . hasLetter) (divideInPar a))) == 0 = (map parseVar (filter hasLetter (divideInPar a)), [1])
-           | otherwise = (map parseVar (filter hasLetter (divideInPar a)), map parseCoef (filter (not . hasLetter) (divideInPar a)))
+parseMon (x:xs) | length (filter (not . hasLetter) (divideInComp (x:xs))) == 0 = (map parseVar (filter hasLetter (divideInComp (x:xs))), [1])
+                | otherwise = (map parseVar (filter hasLetter (divideInComp (x:xs))), map parseCoef (filter (not . hasLetter) (divideInComp (x:xs))))
 
+-- parse do polinómio
 parsePoly :: String -> [([(String, Int)], [Int])]
 parsePoly [] = []
-parsePoly ('+':xs) = parsePoly(xs)
-parsePoly ('-':xs) = parsePoly(xs)
-parsePoly a = [parseMon (takeWhile (\x -> (x /= '+') && (x /= '-')) a)] ++ parsePoly (dropWhile (\x -> (x /= '+') && (x /= '-')) a)
+parsePoly ('+':xs) = parsePoly xs
+parsePoly (x:xs) | x == '-' = parseMon (x : takeWhile (\x -> (x /= '+') && (x /= '-')) xs) : parsePoly (dropWhile (\x -> (x /= '+') && (x /= '-')) xs)
+                 | otherwise = parseMon (takeWhile (\x -> (x /= '+') && (x /= '-')) (x:xs)) : parsePoly (dropWhile (\x -> (x /= '+') && (x /= '-')) (x:xs))
 
+-- parse do polinómio sem espaços
 parse :: String -> [([(String, Int)], [Int])]
 parse a = parsePoly(removeSpace a)
+
+
+----   FUNÇÕES DE ORDENAÇÃO
+
+--Função auxiliar : encontra o maior expoente de entre todas as incognitas de um monómio
+findMax:: [([Char] ,Int)]-> Int
+findMax [] = 0
+findMax [a] = snd a
+findMax (x:xs) = if( (snd x)>= (snd (head xs))) then findMax ([x]++(tail xs))
+            else findMax xs
+
+-- Ordena a lista de incognitas por ordem crescente do seu expoente
+sortMon :: Ord a => Ord b => [(a, b)] -> [(a, b)]
+sortMon = sortBy (compare `on` snd)
+
+-- Ordena os monómios por ordem decrescente do seu maior expoente
+sortPol z = reverse(sortOn (\(x,y)->(findMax  x)) z) 
+
+
+----  FUNÇÕES PARA IMPRIMIR COMO STRING
+
+-- Passa as variáveis de monómio para string (x^2)
+stringifyVar :: [(String, Int)] -> String
+stringifyVar a = foldl (++) "" (map (\x -> if ((snd x) /= 1) then (fst x ++ "^" ++ (show (snd x))) else (fst x)) (sortMon a))
+
+-- Transforma um monómio em string
+stringifyMon :: ([(String, Int)], [Int]) -> String 
+stringifyMon ([], a) = show (a !! 0)
+stringifyMon a = show (abs ((snd a) !! 0)) ++ "*" ++ stringifyVar (fst a)
+
+-- Transforma um polinómio em string (adiciona os sinais entre os monómios )
+stringifyPol :: [([(String, Int)], [Int])] -> String
+stringifyPol a = foldl (++) "" (map (\x -> if (((snd x) !! 0) > 0 ) then (" + " ++ (stringifyMon x)) else (" - " ++ (stringifyMon x))) a)
+
+-- Verifica o valor do primeiro monómio e adiciona um "-" ou nada no início do polinómio
+stringify :: [([(String, Int)], [Int])] -> String
+stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol xs) else "- " ++ (stringifyMon x) ++ (stringifyPol xs)
+
+
+-- A) NORMALIZAÇÃO
 
 -- testa se uma variável + expoente está presente numa lista de variáveis + expoentes
 exists:: (String, Int) -> [(String, Int)] -> Bool
@@ -65,6 +117,7 @@ joinPoly (x:xs) = (joinMonList ([(fst x, [sum (snd x)])] ++ (filter (\y -> isEqu
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
+-- apaga incógnitas com expoente 0
 removeNull :: [(String, Int)] -> [(String, Int)]
 removeNull [] = []
 removeNull (x:xs) = if snd x == 0 then removeNull xs else x : removeNull xs
@@ -72,7 +125,6 @@ removeNull (x:xs) = if snd x == 0 then removeNull xs else x : removeNull xs
 removeNullExp :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 removeNullExp a = addEqualVar(removeNull(fst a), snd a)
 
--- apagar e substituir por map
 removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeVar xs = map removeNullExp xs
 
@@ -123,7 +175,9 @@ normal a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon 
 stringifyNormal ::  [([(String, Int)], [Int])]  -> String
 stringifyNormal y = stringify  (normal y)
 
--- 2. SOMA
+
+-- B) SOMA
+
 -- Soma dois polinómios e imprime na forma de string
 sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
 sumPoly a b = stringify (normal (a ++ b))
@@ -138,7 +192,9 @@ sumPolyList a = stringify (normal (foldl (++) [] a))
 sumListString :: [String] -> String
 sumListString a = sumPolyList (map parse a)
 
--- 3. MULTIPLICAÇÃO
+
+-- C) MULTIPLICAÇÃO
+
 -- multiplicar 2 mon
 mulMon :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 mulMon x y = (fst x ++ fst y, [(snd x)!!0 * (snd y)!!0])
@@ -176,7 +232,9 @@ mul a b =  stringify (normal (mulPoly a b))
 mulString :: String -> String -> String
 mulString a b = mul (parse a) (parse b)
 
--- 4. derivação
+
+-- D) DERIVAÇÃO
+
 -- mon não tem String -> 0
 -- mon tem String e mais nada -> exp -1; coef * exp
 -- mon tem String e mais -> derivar String * resto 
