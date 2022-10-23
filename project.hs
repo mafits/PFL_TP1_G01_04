@@ -28,7 +28,7 @@ parseCoef a = read a :: Int
 -- dividir um monómio numa lista de componentes (coeficiente e incógnitas)
 divideInComp :: String -> [String]
 divideInComp [] = []
-divideInComp ('*':xs) = divideComp(xs)
+divideInComp ('*':xs) = divideInComp(xs)
 divideInComp a | (head (takeWhile (/= '*') a) == '-') && isLetter (takeWhile (/= '*') a !! 1) = "-1" : tail (takeWhile (/= '*') a) : divideInComp (dropWhile (/= '*') a)
                | otherwise = takeWhile (/= '*') a : divideInComp (dropWhile (/= '*') a)
 
@@ -83,6 +83,7 @@ stringifyPol a = foldl (++) "" (map (\x -> if (((snd x) !! 0) > 0 ) then (" + " 
 
 -- Verifica o valor do primeiro monómio e adiciona um "-" ou nada no início do polinómio
 stringify :: [([(String, Int)], [Int])] -> String
+stringify [] = ""
 stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol xs) else "- " ++ (stringifyMon x) ++ (stringifyPol xs)
 
 
@@ -129,52 +130,14 @@ removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeVar xs = map removeNullExp xs
 
 
-----   FUNÇÕES DE ORDENAÇÃO
-
---Função auxiliar : encontra o maior expoente de entre todas as incognitas de um monómio
-findMax:: [([Char] ,Int)]-> Int
-findMax [] = 0
-findMax [a] = snd a
-findMax (x:xs) = if( (snd x)>= (snd (head xs))) then findMax ([x]++(tail xs))
-            else findMax xs
-
--- Ordena a lista de incognitas por ordem crescente do seu expoente
-sortMon :: Ord a => Ord b => [(a, b)] -> [(a, b)]
-sortMon = sortBy (compare `on` snd)
-
--- Ordena os monómios por ordem decrescente do seu maior expoente
-sortPol z = reverse(sortOn (\(x,y)->(findMax  x)) z) 
-
-
-----  FUNÇÕES PARA IMPRIMIR COMO STRING
-
--- Passa as variáveis de monómio para string (x^2)
-stringifyVar :: [(String, Int)] -> String
-stringifyVar a = foldl (++) "" (map (\x -> if ((snd x) /= 1) then (fst x ++ "^" ++ (show (snd x))) else (fst x)) (sortMon a))
-
--- Transforma um monómio em string
-stringifyMon :: ([(String, Int)], [Int]) -> String 
-stringifyMon ([], a) = show (a !! 0)
-stringifyMon a = show (abs ((snd a) !! 0)) ++ "*" ++ stringifyVar (fst a)
-
--- Transforma um polinómio em string (adiciona os sinais entre os monómios )
-stringifyPol :: [([(String, Int)], [Int])] -> String
-stringifyPol a = foldl (++) "" (map (\x -> if (((snd x) !! 0) > 0 ) then (" + " ++ (stringifyMon x)) else (" - " ++ (stringifyMon x))) a)
-
--- Verifica o valor do primeiro monómio e adiciona um "-" ou nada no início do polinómio
-stringify :: [([(String, Int)], [Int])] -> String
-stringify [] = ""
-stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol xs) else "- " ++ (stringifyMon x) ++ (stringifyPol xs)
-
 -- 1. NORMALIZAÇÃO
 -- Normaliza um polinómio
 normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 normal a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
 
 -- Imprime o polinómio normalizado na forma de String
-stringifyNormal ::  [([(String, Int)], [Int])]  -> String
-stringifyNormal y = stringify  (normal y)
-
+normalString ::  String -> String
+normalString y = stringify  (normal (parse y))
 
 -- B) SOMA
 
@@ -272,12 +235,9 @@ deriveString :: String -> String -> String
 deriveString a b = derive (parse a) b
 
 -- Normal
---[([("x",1),("y",3)],[3,5]),([("x",7)],[9]),([("y",3),("x",1)],[7])]  -> "9*x^7 + 15*xy^3"
---[([("x",1)],[0]),([("z",7)],[9]),([("y",3),("x",1)],[])]  ->  "9*z^7"
---[([("x",1)],[1]),([("x",1)],[-2]),([("x",1)],[])]  ->  "3*x"
---[([("x",1)],[1]),([("x",1)],[-2]),([("x",1)],[])]  ->  "- 1*x"
--- stringifyNormal [] -> ""
-
+-- normalString "3*x*y^3 + 5*x*y^3 - 9*x^7 - 7*y^3*x"  -> "9*x^7 + 15*xy^3"
+-- normalString "9   *  z^9 + x*  y^3 - 0*x - 7*y^3*x"  ->  "9*z^9 - 6*xy^3"
+-- normalString "" -> ""
 
 -- Soma
 -- sumString "- 2*x^2 + 3*y^5 -x"  "- 2*x^2 + 0*y^5 -3*x"
@@ -285,6 +245,11 @@ deriveString a b = derive (parse a) b
 -- sumString "- 2*x^2 + 3*y^5 -x"  ""
 
 -- Multiplicação
+
+-- mulString "- 2*x^2 + 3*y^5 -x"   "- 2*x^2 + 3*y^5" ->  "9*y^10 - 3*xy^5 - 12*x^2y^5 + 4*x^4 + 2*x^3"
+-- mulString "- 2*x^2 + 3*y^5 -x"   "0"  -> ""
+-- mulString "- 2  *  x  ^  2 + 3*  y  ^  5 -  x  "   "1" -> "3*y^5 - 2*x^2 - 1*x"
+
 
 
 
