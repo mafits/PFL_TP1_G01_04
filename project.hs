@@ -7,44 +7,44 @@ import Data.Monoid (mappend)
 
 ----   PARSING: de string para polinómio
 
--- remover os espaços das strings de input
+-- Remove os espaços nas strings de input
 removeSpace :: String -> String
 removeSpace = filter (not . isSpace)
 
--- retorna verdadeiro no caso de a componente do monómio ter uma variável (uma letra)
+-- Testa se a componente do monómio tem uma variável (uma letra)
 hasLetter :: String -> Bool
 hasLetter [] = False
 hasLetter (x:xs) = if isLetter x then True else hasLetter xs
 
--- transformar a incógnita na representação interna
+-- Transforma uma incógnita na representação interna
 parseVar :: String -> (String, Int)
 parseVar a | length a == 1 = (a, 1)
            | otherwise = (takeWhile (/= '^') a, read (drop 2 a) :: Int)
 
--- transformar o coeficiente na representação interna
+-- Transforma o coeficiente na representação interna
 parseCoef :: String -> Int
 parseCoef a = read a :: Int
 
--- dividir um monómio numa lista de componentes (coeficiente e incógnitas)
+-- Dividi um monómio numa lista de componentes (coeficiente e incógnitas)
 divideInComp :: String -> [String]
 divideInComp [] = []
 divideInComp ('*':xs) = divideInComp(xs)
 divideInComp a | (head (takeWhile (/= '*') a) == '-') && isLetter (takeWhile (/= '*') a !! 1) = "-1" : tail (takeWhile (/= '*') a) : divideInComp (dropWhile (/= '*') a)
                | otherwise = takeWhile (/= '*') a : divideInComp (dropWhile (/= '*') a)
 
--- parse de cada monómio
+-- Tranforma um monómio na representação interna
 parseMon :: String -> ([(String, Int)], [Int])
 parseMon (x:xs) | length (filter (not . hasLetter) (divideInComp (x:xs))) == 0 = (map parseVar (filter hasLetter (divideInComp (x:xs))), [1])
                 | otherwise = (map parseVar (filter hasLetter (divideInComp (x:xs))), map parseCoef (filter (not . hasLetter) (divideInComp (x:xs))))
 
--- parse do polinómio
+-- Transforma um polinómio em String (já sem espaços)
 parsePoly :: String -> [([(String, Int)], [Int])]
 parsePoly [] = []
 parsePoly ('+':xs) = parsePoly xs
 parsePoly (x:xs) | x == '-' = parseMon (x : takeWhile (\x -> (x /= '+') && (x /= '-')) xs) : parsePoly (dropWhile (\x -> (x /= '+') && (x /= '-')) xs)
                  | otherwise = parseMon (takeWhile (\x -> (x /= '+') && (x /= '-')) (x:xs)) : parsePoly (dropWhile (\x -> (x /= '+') && (x /= '-')) (x:xs))
 
--- parse do polinómio sem espaços
+-- Parsing do monómio, após retirar os espaços
 parse :: String -> [([(String, Int)], [Int])]
 parse a = parsePoly(removeSpace a)
 
@@ -89,146 +89,164 @@ stringify (x:xs) = if ((snd x) !! 0 > 0) then (stringifyMon x) ++ (stringifyPol 
 
 -- A) NORMALIZAÇÃO
 
--- testa se uma variável + expoente está presente numa lista de variáveis + expoentes
+-- Testa se uma incógnita está presente numa lista de incógnitas
 exists:: (String, Int) -> [(String, Int)] -> Bool
 exists a [] = False
 exists a (b:xs) | a == b = True
                 | otherwise = exists a xs
 
--- testa se as variáveis e expoentes respetivos de 2 pol são iguais
+-- Testa se as incógnitas de dois polinómios são iguais
 isEqual:: [(String, Int)] -> [(String, Int)] -> Bool
 isEqual [] b = True
 isEqual (a:xs) b | exists a b = isEqual xs b
                  | otherwise = False
 
--- soma coeficientes de dois monómios (com variáveis e expoentes iguais)
+-- Soma coeficientes de dois monómios (com incógnitas iguais)
 joinMon :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 joinMon x y = ( fst y, [sum ((snd y) ++ (snd x))] )
 
--- soma os coeficientes de vários monómios (com variáveis e expoentes iguais)
+-- Soma os coeficientes de todos os monómios (com incógnitas iguais)
 joinMonList :: [([(String, Int)], [Int])]  -> [([(String, Int)], [Int])]
 joinMonList (x:xs) = [foldl (\z y -> joinMon z y) x xs]
 
--- soma os monómios com variáveis e expoentes iguais dentro de um polinómio
+-- Soma os monómios com incógnitas iguais dentro de um polinómio
 joinPoly :: [([(String, Int)], [Int])]  -> [([(String, Int)], [Int])]
 joinPoly [] = []
 joinPoly (x:xs) = (joinMonList ([(fst x, [sum (snd x)])] ++ (filter (\y -> isEqual (fst x) (fst y)) xs))) ++ joinPoly (filter (\y -> not (isEqual (fst x) (fst y))) xs)
 
--- remove os monómios com coeficiente zero ( == 0 ) ou sem coeficiente ( == [] )
+-- Remove os monómios com coeficiente zero ( == 0 ) ou sem coeficiente ( == [] )
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
--- apaga incógnitas com expoente 0
-removeNull :: [(String, Int)] -> [(String, Int)]
-removeNull [] = []
-removeNull (x:xs) = if snd x == 0 then removeNull xs else x : removeNull xs
+-- Apaga incógnitas com expoente 0
+removeNullExp :: [(String, Int)] -> [(String, Int)]
+removeNullExp [] = []
+removeNullExp (x:xs) = if snd x == 0 then removeNullExp xs else x : removeNullExp xs
 
-removeNullExp :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
-removeNullExp a = addEqualVar(removeNull(fst a), snd a)
-
+-- APAGAR ADDEQUALVAR DEPOIS DE CORRIGIR JOINPOLY
 removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-removeVar xs = map removeNullExp xs
+removeVar a = map (\x -> addEqualVar(removeNullExp(fst x), snd x)) a
 
--- Normaliza um polinómio
-normal :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-normal a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
+-- Normaliza um polinómio (representação interna)
+normalPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+normalPoly a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
 
--- Imprime o polinómio normalizado na forma de String
+-- Normaliza um polinómio (input: representação interna, output: String)
+normal ::  [([(String, Int)], [Int])]  -> String
+normal y = stringify  (normalPoly y)
+
+-- Normaliza um polinómio (String)
 normalString ::  String -> String
-normalString y = stringify  (normal (parse y))
+normalString y = normal (parse y)
 
 -- B) SOMA
 
+-- Soma dois polinómios (representação interna)
+sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+sumPoly a b = normalPoly (a ++ b)
+
 -- Soma dois polinómios e imprime na forma de string
-sumPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
-sumPoly a b = stringify (normal (a ++ b))
+mysum :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
+mysum a b = stringify (normalPoly (a ++ b))
 
+-- Soma dois polinómios (String)
 sumString :: String -> String -> String
-sumString a b = sumPoly (parse a) (parse b)
+sumString a b = mysum (parse a) (parse b)
 
--- Soma vários polinómios numa lista e imprime na forma de string
+-- Soma vários polinómios (input: representação interna, output: String)
 sumPolyList :: [[([(String, Int)], [Int])]] -> String
-sumPolyList a = stringify (normal (foldl (++) [] a))
+sumPolyList a = stringify (normalPoly (foldl (++) [] a))
 
+-- Soma vários polinómios (String)
 sumListString :: [String] -> String
 sumListString a = sumPolyList (map parse a)
 
 
 -- C) MULTIPLICAÇÃO
 
--- multiplicar 2 mon
+-- Multiplica 2 monómios
 mulMon :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 mulMon x y = (fst x ++ fst y, [(snd x)!!0 * (snd y)!!0])
 
+-- Apaga a 2a incógnita depois de somada
 mydel :: (String, Int) -> [(String, Int)] -> [(String, Int)]
 mydel a [] = []
 mydel a (x:xs) = if fst(a) == fst(x) then mydel a xs else x : mydel a xs
 
+-- Adiciona expoentes caso a incógnita seja igual
 addExp :: (String, Int) -> [(String, Int)] -> (String, Int)
 addExp a [] = a
 addExp a (x:xs) = if (fst(a) == fst(x)) then addExp (fst(a), snd(a)+snd(x)) xs else addExp a xs
 
+-- Vê se uma lista de incógnitas tem algumas com variável igual
 equalVar :: [(String, Int)] -> [(String, Int)]
 equalVar [] = []
 equalVar (x:xs) = addExp x xs : equalVar(mydel (addExp x xs) xs)
 
--- substituir por map (apagar esta função)
 addEqualVar :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 addEqualVar a = (equalVar (fst a), snd a)
 
--- distribuir um mon pelo polinomio
+-- Distribui um monómio por um polinómio
 mulMonPoly :: ([(String, Int)], [Int]) -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 mulMonPoly x [] = []
 mulMonPoly x (y:ys) = [addEqualVar(mulMon x y)] ++ mulMonPoly x ys
 
--- multiplicação
+-- Multiplica dois polinómios (representação interna)
 mulPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 mulPoly [] y = []
 mulPoly (x:xs) y = mulMonPoly x y ++ mulPoly xs y
 
--- print multiplicação
+-- Multiplica dois polinómios (input: representação interna, output: String)
 mul :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> String
-mul a b =  stringify (normal (mulPoly a b))
+mul a b =  stringify (normalPoly (mulPoly a b))
 
+-- Multiplica dois polinómios (String)
 mulString :: String -> String -> String
 mulString a b = mul (parse a) (parse b)
 
 
 -- D) DERIVAÇÃO
 
--- mon não tem String -> 0
--- mon tem String e mais nada -> exp -1; coef * exp
--- mon tem String e mais -> derivar String * resto 
-
+-- Testa se uma variável existe num monómio
 stringIn :: [(String, Int)] -> String -> Bool
 stringIn [] b = False
 stringIn (x:xs) b = if fst x == b then True else stringIn xs b
 
--- derivação com string
+-- Deriva uma incógnita com a variável igual à que pretendemos derivar
 deriveVar :: [(String, Int)] -> [Int] -> ([(String, Int)], [Int])
 deriveVar a [b] = ([(fst(a!!0), snd(a!!0)-1)], [b*snd(a!!0)])
 
+-- Filtra as incógnitas com variável igual à que pretendemos derivar
 filterVar :: [(String, Int)] -> String -> [(String, Int)]
 filterVar [] b = []
 filterVar (x:xs) b = if fst x == b then [x] else filterVar xs b
 
+-- Retira das incógnitas as que têm variável igual à que pretendemos derivar
 notFilterVar :: [(String, Int)] -> String -> [(String, Int)]
 notFilterVar [] b = []
 notFilterVar (x:xs) b = if fst x /= b then x : notFilterVar xs b else notFilterVar xs b
 
+-- Adiciona incógnitas a um monómio
 concatVar :: ([(String, Int)], [Int]) -> [(String, Int)] -> ([(String, Int)], [Int])
 concatVar a b = (fst a ++ b, snd a)
 
--- tem var = String, fazer derivação da multiplicação
+-- Testa se o monómio tem a variável a ser derivada e, no caso, deriva-a
 deriveMul :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
 deriveMul a b = concatVar(deriveVar (filterVar (fst a) b) (snd a)) (notFilterVar (fst a) b)
 
+-- Deriva um monómio
 deriveMon :: ([(String, Int)], [Int]) -> String -> ([(String, Int)], [Int])
 deriveMon a b = if stringIn (fst a) b then deriveMul a b else ([],[0])
 
-derive :: [([(String, Int)], [Int])] -> String -> String
-derive a b = stringify (normal (map (\x -> deriveMon x b) (normal a)))
+-- Deriva um polinómio (representação interna)
+derivePoly :: [([(String, Int)], [Int])] -> String -> [([(String, Int)], [Int])]
+derivePoly a b = normalPoly (map (\x -> deriveMon x b) (normalPoly a))
 
+-- Deriva um polinómio (input: representação interna, output: String)
+derive :: [([(String, Int)], [Int])] -> String -> String
+derive a b = stringify (derivePoly a b)
+
+-- Deriva um polinómio (String)
 deriveString :: String -> String -> String
 deriveString a b = derive (parse a) b
 
