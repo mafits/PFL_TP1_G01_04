@@ -35,15 +35,15 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 ### Normalização
 
-> O primeiro passo na implentação foi criar uma função que permitisse comparar monómios e perceber se estes tinham a mesma parte literal -> *isEqual*
+> O primeiro passo na implentação foi criar uma função que permitisse comparar monómios e perceber se estes tinham a mesma parte literal -> `isEqual`
 
-> O passo seguinte foi criar uma função que permisse a soma entre vários monómios com parte literal igual, retornando apenas o monómio final -> *joinMonList*
+> O passo seguinte foi criar uma função que permisse a soma entre vários monómios com parte literal igual, retornando apenas o monómio final -> `joinMonList`
 
-> De seguida, aplicando as funções anteriores, criámos uma função que soma todos os monómios com parte literal igual dentro do polinómio -> *joinPoly*
+> De seguida, aplicando as funções anteriores, criámos uma função que soma todos os monómios com parte literal igual dentro do polinómio -> `joinPoly`
 
-> Para removermos os casos em que o coefiente de um monómio é zero, ou a lista de coefiecientes está vazia, criamos também uma função -> *removeMon*
+> Para removermos os casos em que o coefiente de um monómio é zero, ou a lista de coefiecientes está vazia, criamos também uma função -> `removeMon`
 
-> Para lidarmos com as incógnitas, criamos a função *handleVar*. Além de remover da lista das incógnitas aquelas que tivessem expoente 0 (*removeVar*), também soma os expoentes de incógnitas com a mesma variável dentro do mesmo monómio(*addEqualVar*). Esta última, verifica se na listagem de incógnitas de um monómio existem duas com variáveis iguais. Para testar todos os pares, verifica a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, soma o expoente da segunda ao expoente da primeira, ficando apenas a primeira incógnita com o expoente "atualizado", sendo a segunda eliminada.
+> Para lidarmos com as incógnitas, criamos a função `handleVar`. Além de remover da lista das incógnitas aquelas que tivessem expoente 0 (`removeVar`), também soma os expoentes de incógnitas com a mesma variável dentro do mesmo monómio(`addEqualVar`). Esta última, verifica se na listagem de incógnitas de um monómio existem duas com variáveis iguais. Para testar todos os pares, verifica a igualdade de uma incógnita com todas as seguintes. No caso de terem variável igual, soma o expoente da segunda ao expoente da primeira, ficando apenas a primeira incógnita com o expoente "atualizado", sendo a segunda eliminada.
 
 > Para completar a normalização criámos duas funções de ordenação:
 - Para ordenar as incógnitas dentro de um monómio por ordem decrescente dos seus expoentes; Quando estes são iguais ordenámos as incógnitas por ordem alfabética.
@@ -100,17 +100,17 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 ### Parsing (de String para a representação interna)
 
-> Aplicamos uma função para remover os espaços todos na String introduzida -> *removeSpace*
+> Aplicamos uma função para remover os espaços todos na String introduzida -> `removeSpace`
 
-> Na função *parsePoly* dividimos o polinómio em monómios, a partir da deteção de um sinal de adição ('+') ou de subtração ('-').
+> Na função `parsePoly` dividimos o polinómio em monómios, a partir da deteção de um sinal de adição ('+') ou de subtração ('-').
 
-> Para o parsing de cada monómio, dividimos o mesmo nas suas componentes. Isto é, representamos os seus coeficientes e incógnitas numa lista de String, a partir da detação do sinal de multiplicação (*'*'). Por exemplo, "3*x^2*y" passa a ser representado por ["3", "x^2", "y"] -> *divideInComp*
+> Para o parsing de cada monómio, dividimos o mesmo nas suas componentes. Isto é, representamos os seus coeficientes e incógnitas numa lista de String, a partir da detação do sinal de multiplicação ('\*'). Por exemplo, "3\*x^2\*y" passa a ser representado por ["3", "x^2", "y"] -> `divideInComp`
 
-> Filtramos as componentes que têm uma letra, logo, que são uma incógnita (*hasLetter*), e colocamo-las no formato que pretendido: par (variável, expoente). Por exemplo, "x^2" passa a ser ("x",2). -> *parseVar*
+> Filtramos as componentes que têm uma letra, logo, que são uma incógnita (`hasLetter`), e colocamo-las no formato que pretendido: par (variável, expoente). Por exemplo, "x^2" passa a ser ("x",2). -> `parseVar`
 
-> As componentes que não têm letra, são coeficientes. Neste caso, só transformamos a String que as representa em inteiro. -> *parseCoef*
+> As componentes que não têm letra, são coeficientes. Neste caso, só transformamos a String que as representa em inteiro. -> `parseCoef`
 
-> Finalmente, juntamos estes dois últimos parsings no formato de monómio pretendido. "3*x^2*y" passa a ([("x",2),("y",1)],[3]). -> *parseMon*
+> Finalmente, juntamos estes dois últimos parsings no formato de monómio pretendido. "3\*x^2\*y" passa a ([("x",2),("y",1)],[3]). -> `parseMon`
 
 ## Exemplos de Teste
 
@@ -173,7 +173,7 @@ mulString "- 2*x^2 + 3*y^5 -x"   "- 2*x^2 + 3*y^5"
 ``` haskell 
 mulString "- 2*x^2 + 3*y^5 -x"   "0" 
 ```
-> Output: ""
+> Output: "0"
 ``` haskell 
 mulString "- 2  *  x  ^  2 + 3*  y  ^  5 -  3 * x  "   "x^0"
 ```
@@ -193,7 +193,7 @@ deriveString  "x^4 + 2*y*x^6 + 5*z^3"  "x"
 ``` haskell 
 deriveString "3*z + 1"  "x" 
 ```
-> Output: ""
+> Output: "0"
 ``` haskell 
 deriveString   "x ^ 2 +3 * z -4 * z   ^2 "  "z"
 ```
