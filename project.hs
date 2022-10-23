@@ -118,18 +118,36 @@ joinPoly (x:xs) = (joinMonList ([(fst x, [sum (snd x)])] ++ (filter (\y -> isEqu
 removeMon :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 removeMon a = filter (\x -> (not (((snd x) !! 0) ==0) && ( not ((snd x)==[])))) a
 
+-- Apaga a 2a incógnita depois de somada
+mydel :: (String, Int) -> [(String, Int)] -> [(String, Int)]
+mydel a [] = []
+mydel a (x:xs) = if fst(a) == fst(x) then mydel a xs else x : mydel a xs
+
+-- Adiciona expoentes caso a incógnita seja igual
+addExp :: (String, Int) -> [(String, Int)] -> (String, Int)
+addExp a [] = a
+addExp a (x:xs) = if (fst(a) == fst(x)) then addExp (fst(a), snd(a)+snd(x)) xs else addExp a xs
+
+-- Vê se uma lista de incógnitas tem algumas com variável igual
+equalVar :: [(String, Int)] -> [(String, Int)]
+equalVar [] = []
+equalVar (x:xs) = addExp x xs : equalVar(mydel (addExp x xs) xs)
+
+addEqualVar :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
+addEqualVar a = (equalVar (fst a), snd a)
+
 -- Apaga incógnitas com expoente 0
 removeNullExp :: [(String, Int)] -> [(String, Int)]
 removeNullExp [] = []
 removeNullExp (x:xs) = if snd x == 0 then removeNullExp xs else x : removeNullExp xs
 
--- APAGAR ADDEQUALVAR DEPOIS DE CORRIGIR JOINPOLY
-removeVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-removeVar a = map (\x -> addEqualVar(removeNullExp(fst x), snd x)) a
+-- Retira expoentes nulos e, num monómio, soma expoentes de incógnitas com a mesma variável
+handleVar :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
+handleVar a = map (\x -> addEqualVar(removeNullExp(fst x), snd x)) a
 
 -- Normaliza um polinómio (representação interna)
 normalPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
-normalPoly a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (removeVar (removeMon (joinPoly a))))
+normalPoly a =  map (\x -> (sortMon (fst x), snd x)) (sortPol (handleVar (removeMon (joinPoly a))))
 
 -- Normaliza um polinómio (input: representação interna, output: String)
 normal ::  [([(String, Int)], [Int])]  -> String
@@ -168,28 +186,10 @@ sumListString a = sumPolyList (map parse a)
 mulMon :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
 mulMon x y = (fst x ++ fst y, [(snd x)!!0 * (snd y)!!0])
 
--- Apaga a 2a incógnita depois de somada
-mydel :: (String, Int) -> [(String, Int)] -> [(String, Int)]
-mydel a [] = []
-mydel a (x:xs) = if fst(a) == fst(x) then mydel a xs else x : mydel a xs
-
--- Adiciona expoentes caso a incógnita seja igual
-addExp :: (String, Int) -> [(String, Int)] -> (String, Int)
-addExp a [] = a
-addExp a (x:xs) = if (fst(a) == fst(x)) then addExp (fst(a), snd(a)+snd(x)) xs else addExp a xs
-
--- Vê se uma lista de incógnitas tem algumas com variável igual
-equalVar :: [(String, Int)] -> [(String, Int)]
-equalVar [] = []
-equalVar (x:xs) = addExp x xs : equalVar(mydel (addExp x xs) xs)
-
-addEqualVar :: ([(String, Int)], [Int]) -> ([(String, Int)], [Int])
-addEqualVar a = (equalVar (fst a), snd a)
-
 -- Distribui um monómio por um polinómio
 mulMonPoly :: ([(String, Int)], [Int]) -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
 mulMonPoly x [] = []
-mulMonPoly x (y:ys) = [addEqualVar(mulMon x y)] ++ mulMonPoly x ys
+mulMonPoly x (y:ys) = (mulMon x y) : mulMonPoly x ys
 
 -- Multiplica dois polinómios (representação interna)
 mulPoly :: [([(String, Int)], [Int])] -> [([(String, Int)], [Int])] -> [([(String, Int)], [Int])]
