@@ -62,6 +62,7 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Ambas as funções recebem o input e retornam o resultado já na forma de *String*
 
+
 ### Multiplicação
 
 > O primeiro passo foi criar uma função que multiplicasse dois monómios, ou seja, que concatenasse as duas partes literais e multiplicasse os seus coeficientes -> `mulMon`
@@ -74,6 +75,7 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > A função final (`mulString`) recebe e retorna o resutado na forma de String
 
+
 ### Derivação
 
 > Derivamos monómio e a monómio.
@@ -83,6 +85,7 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 > Tendo um monómio a variável a derivar, derivamos as incógnitas que têm a variável, uma a uma (multiplicamos o coeficiente pelo expoente da incógnita e subtraímos o expoente por 1), e concatenamos com as que não têm.
 
 > Normalizamos o polinómio final para retirar coeficientes nulos, incógnitas com expoente nulo e juntar monómios com incógnitas iguais.
+
 
 ### Imprimir na forma de String
 
@@ -94,6 +97,20 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 
 > Por fim, o passo final foi retirar o sinal '+' do primeiro monómio se este fosse positivo -> `stringify`
 <br>
+
+### Parsing (de String para a representação interna)
+
+> Aplicamos uma função para remover os espaços todos na String introduzida -> *removeSpace*
+
+> Na função *parsePoly* dividimos o polinómio em monómios, a partir da deteção de um sinal de adição ('+') ou de subtração ('-').
+
+> Para o parsing de cada monómio, dividimos o mesmo nas suas componentes. Isto é, representamos os seus coeficientes e incógnitas numa lista de String, a partir da detação do sinal de multiplicação (*'*'). Por exemplo, "3*x^2*y" passa a ser representado por ["3", "x^2", "y"] -> *divideInComp*
+
+> Filtramos as componentes que têm uma letra, logo, que são uma incógnita (*hasLetter*), e colocamo-las no formato que pretendido: par (variável, expoente). Por exemplo, "x^2" passa a ser ("x",2). -> *parseVar*
+
+> As componentes que não têm letra, são coeficientes. Neste caso, só transformamos a String que as representa em inteiro. -> *parseCoef*
+
+> Finalmente, juntamos estes dois últimos parsings no formato de monómio pretendido. "3*x^2*y" passa a ([("x",2),("y",1)],[3]). -> *parseMon*
 
 ## Exemplos de Teste
 
