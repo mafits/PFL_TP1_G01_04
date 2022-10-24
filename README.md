@@ -1,5 +1,10 @@
 # PFL_TP1_G01_04
 
+
+Mafalda Bastos da Costa - up202006417
+
+Sara Moreira Reis - up202005388
+
 ## Representação interna
 
 ### Monómio:
@@ -202,3 +207,4 @@ deriveString   "x ^ 2 +3 * z -4 * z   ^2 "  "z"
 deriveString   "x +0*x"  "x"
 ```
 > Output: "1"
+
