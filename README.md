@@ -126,7 +126,7 @@ Uma das razões que nos motivou a escolher este padrão foi a necessidade de rep
 ``` haskell 
 normalString "3*x*y^3 + 5*x*y^3 - 9*x^7 - 7*y^3*x" 
 ```
-> Output: "9*x^7 + 15*xy^3"
+> Output: "- 9*x^7 + 1*xy^3"
 ``` haskell 
 normalString "9   *  z^9 + x*  y^3 - 0*x - 7*y^3*x"
 ```
